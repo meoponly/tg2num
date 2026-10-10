@@ -3,306 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TG to Phone Converter</title>
+    <title>TG_RESOLVER // TERMINAL</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root {
-            --bg-base: #030712;
-            --surface-primary: rgba(17, 24, 39, 0.7);
-            --surface-secondary: rgba(31, 41, 55, 0.6);
-            --border-primary: rgba(255, 255, 255, 0.08);
-            --border-glow: rgba(56, 189, 248, 0.3);
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            --accent-cyan: #38bdf8;
-            --accent-blue: #6366f1;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-color: #030804;
+            --term-panel: rgba(5, 18, 9, 0.9);
+            --term-border: #00ff66;
+            --term-border-dim: rgba(0, 255, 102, 0.3);
+            --term-green: #00ff66;
+            --term-dim: #00aa44;
+            --term-alert: #ff3344;
+            --font-mono: "Courier New", Courier, monospace;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: var(--font-family);
-            -webkit-tap-highlight-color: transparent;
+            font-family: var(--font-mono);
         }
 
         body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
+            background-color: var(--bg-color);
+            color: var(--term-green);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            overflow-x: hidden;
-            position: relative;
+            background-image: radial-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 0);
+            background-size: 24px 24px;
+            text-shadow: 0 0 4px rgba(0, 255, 102, 0.5);
         }
 
-        /* Ambient Glow Backgrounds */
-        .ambient-glow {
-            position: fixed;
-            width: 450px;
-            height: 450px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            filter: blur(120px);
-            opacity: 0.15;
-            transition: all 1s ease;
-        }
-        .glow-1 {
-            top: -100px;
-            left: -100px;
-            background: radial-gradient(circle, var(--accent-cyan), transparent);
-        }
-        .glow-2 {
-            bottom: -100px;
-            right: -100px;
-            background: radial-gradient(circle, var(--accent-blue), transparent);
-        }
-
-        .container {
+        .terminal-container {
             width: 100%;
-            max-width: 440px;
-            position: relative;
-            z-index: 10;
+            max-width: 460px;
         }
 
-        .card {
-            background: var(--surface-primary);
-            border: 1px solid var(--border-primary);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 32px 28px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        .terminal-box {
+            background: var(--term-panel);
+            border: 1px solid var(--term-border);
+            border-radius: 4px;
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.18), inset 0 0 10px rgba(0, 255, 102, 0.05);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            transition: all 0.3s ease;
         }
 
-        .header-section {
-            text-align: center;
-        }
-
-        .header-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent-cyan);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .input-group {
+        .term-header {
+            background: #021206;
+            padding: 8px 14px;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 14px;
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        input {
-            width: 100%;
-            background: var(--surface-secondary);
-            border: 1px solid var(--border-primary);
-            border-radius: 12px;
-            padding: 14px 14px 14px 42px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        input:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
-        }
-
-        .otp-input {
-            letter-spacing: 6px;
-            font-size: 1.3rem;
-            font-weight: 700;
-            text-align: center;
-            padding-left: 14px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            color: #030712;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .message {
+            border-bottom: 1px solid var(--term-border-dim);
             font-size: 0.85rem;
-            text-align: center;
-            min-height: 20px;
+            letter-spacing: 1px;
         }
 
-        .error {
-            color: var(--accent-red);
+        .term-controls span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
         }
+        .ctrl-close { background: #ff4d4d; }
+        .ctrl-min { background: #ffbd2e; }
+        .ctrl-max { background: #27c93f; }
 
-        .success {
-            color: var(--accent-green);
-        }
-
-        /* Result Container */
-        #resultView {
-            display: none;
+        .term-body {
+            padding: 26px 20px;
+            display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        .result-box {
-            background: var(--surface-secondary);
-            border: 1px solid var(--border-primary);
-            border-radius: 12px;
-            padding: 16px;
+        .ascii-title {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: var(--term-green);
+            margin-bottom: 8px;
+        }
+
+        .prompt-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-term {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--term-border-dim);
+            color: var(--term-green);
+            padding: 12px 14px;
+            font-size: 1.1rem;
+            outline: none;
             text-align: center;
+            letter-spacing: 4px;
         }
 
-        .result-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
+        .input-term:focus {
+            border-color: var(--term-border);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
         }
 
-        .result-val {
+        .btn-term {
+            background: transparent;
+            color: var(--term-green);
+            border: 1px solid var(--term-border);
+            padding: 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .btn-term:hover {
+            background: var(--term-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--term-green);
+        }
+
+        .btn-term:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .terminal-log {
+            font-size: 0.85rem;
+            min-height: 20px;
+        }
+
+        .log-error { color: var(--term-alert); }
+        .log-success { color: #22ff88; }
+
+        .result-display {
+            display: none;
+            border: 1px dashed var(--term-border);
+            padding: 14px;
+            background: rgba(0, 255, 102, 0.05);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .result-text {
             font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--accent-cyan);
-            letter-spacing: 1px;
-            user-select: all;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
     </style>
 </head>
 <body>
 
-<div class="ambient-glow glow-1"></div>
-<div class="ambient-glow glow-2"></div>
-
-<div class="container">
-    <!-- View 1: OTP Auth Check (One-Time Single-Use Verification) -->
-    <div class="card" id="otpCard">
-        <div class="header-section">
-            <div class="header-icon">
-                <i class="fa-solid fa-key"></i>
+<div class="terminal-container">
+    <!-- View 1: One-Time Single-Use OTP Login -->
+    <div class="terminal-box" id="authBox">
+        <div class="term-header">
+            <div class="term-controls">
+                <span class="ctrl-close"></span>
+                <span class="ctrl-min"></span>
+                <span class="ctrl-max"></span>
             </div>
-            <h1>Single-Use Access</h1>
-            <p>Enter your 6-digit one-time pass provided by the administrator.</p>
+            <div>GATEWAY // ACCESS_GATE</div>
+            <div>[SECURE]</div>
         </div>
+        <div class="term-body">
+            <div class="ascii-title">
+                [>] RESTRICTED ACCESS GATEWAY<br>
+                [>] ENTER 1-TIME SINGLE USE PASSCODE
+            </div>
 
-        <div class="input-group">
-            <input type="text" id="otpCode" class="otp-input" maxlength="6" placeholder="------" autocomplete="off">
+            <div class="prompt-line">
+                <span>OTP#</span>
+                <input type="text" id="otpInput" class="input-term" maxlength="6" placeholder="000000" autocomplete="off">
+            </div>
+
+            <button class="btn-term" id="verifyOtpBtn">> [EXECUTE_VERIFICATION] <</button>
+            <div class="terminal-log" id="authStatus"></div>
         </div>
-
-        <button class="btn" id="verifyOtpBtn">
-            <span>Verify & Proceed</span>
-            <i class="fa-solid fa-arrow-right"></i>
-        </button>
-
-        <div class="message" id="otpMessage"></div>
     </div>
 
-    <!-- View 2: Converter Main Screen (Appears once OTP is atomically verified) -->
-    <div class="card" id="appCard" style="display: none;">
-        <div class="header-section">
-            <div class="header-icon" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.2); color: var(--accent-blue);">
-                <i class="fa-solid fa-paper-plane"></i>
+    <!-- View 2: Converter Tool (Unlocks after OTP is consumed) -->
+    <div class="terminal-box" id="mainToolBox" style="display: none;">
+        <div class="term-header">
+            <div class="term-controls">
+                <span class="ctrl-close"></span>
+                <span class="ctrl-min"></span>
+                <span class="ctrl-max"></span>
             </div>
-            <h1>Telegram to Phone</h1>
-            <p>Resolve Telegram usernames and tags to phone records</p>
+            <div>MODULE // TG2PHONE_RESOLVER</div>
+            <div>[UNLOCKED]</div>
         </div>
-
-        <div class="input-group">
-            <label>Telegram Username / Tag</label>
-            <div class="input-wrapper">
-                <i class="fa-brands fa-telegram"></i>
-                <input type="text" id="tgInput" placeholder="username without @" autocomplete="off">
+        <div class="term-body">
+            <div class="ascii-title">
+                [+] SESSION AUTHENTICATED (TOKEN CONSUMED)<br>
+                [+] READY FOR TG QUERY
             </div>
-        </div>
 
-        <button class="btn" id="convertBtn">
-            <span>Query Record</span>
-            <i class="fa-solid fa-magnifying-glass"></i>
-        </button>
+            <div class="prompt-line">
+                <span>@</span>
+                <input type="text" id="tgQuery" class="input-term" style="text-align: left; letter-spacing: 1px;" placeholder="username" autocomplete="off">
+            </div>
 
-        <div class="message" id="appMessage"></div>
+            <button class="btn-term" id="queryBtn">> [QUERY_DATABASE] <</button>
+            <div class="terminal-log" id="toolStatus"></div>
 
-        <div id="resultView">
-            <div class="result-box">
-                <div class="result-label">Resolved Phone Record:</div>
-                <div class="result-val" id="phoneOutput">+1 (555) 000-0000</div>
+            <div class="result-display" id="resultBlock">
+                <div style="font-size: 0.75rem; color: var(--term-dim);">RESOLVED TELEPHONE:</div>
+                <div class="result-text" id="phoneOutput">+1 (555) 000-0000</div>
             </div>
         </div>
     </div>
@@ -322,94 +240,89 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const otpInput = document.getElementById("otpCode");
+    const otpInput = document.getElementById("otpInput");
     const verifyOtpBtn = document.getElementById("verifyOtpBtn");
-    const otpMsg = document.getElementById("otpMessage");
-    const otpCard = document.getElementById("otpCard");
-    const appCard = document.getElementById("appCard");
+    const authStatus = document.getElementById("authStatus");
+    const authBox = document.getElementById("authBox");
+    const mainToolBox = document.getElementById("mainToolBox");
 
-    // Single-use OTP verification with atomic transaction
+    // Atomic OTP verification and consumption
     verifyOtpBtn.addEventListener("click", () => {
-        const enteredOtp = otpInput.value.trim();
+        const otp = otpInput.value.trim();
 
-        if (!enteredOtp || enteredOtp.length < 6) {
-            otpMsg.className = "message error";
-            otpMsg.innerText = "Please enter a valid 6-digit OTP.";
+        if (!otp || otp.length < 6) {
+            authStatus.className = "terminal-log log-error";
+            authStatus.innerText = "[!] ERR: 6-digit OTP code required.";
             return;
         }
 
         verifyOtpBtn.disabled = true;
-        otpMsg.className = "message";
-        otpMsg.innerText = "Verifying single-use code...";
+        authStatus.className = "terminal-log";
+        authStatus.innerText = "[*] Verifying & consuming token...";
 
-        const targetOtpRef = db.ref("otps/" + enteredOtp);
+        const otpRef = db.ref("otps/" + otp);
 
-        // Atomic transaction: verify existence and purge in one operation
-        targetOtpRef.transaction((currentValue) => {
-            if (currentValue === null) {
-                return; // Does not exist or already expired
+        otpRef.transaction((data) => {
+            if (data === null) {
+                return; // Not found or already burned
             }
-            return null; // Atomic deletion marks it consumed immediately
+            return null; // Atomic deletion marks it burned immediately
         }, (error, committed, snapshot) => {
             verifyOtpBtn.disabled = false;
 
             if (error) {
-                otpMsg.className = "message error";
-                otpMsg.innerText = "Verification error. Check internet connection.";
+                authStatus.className = "terminal-log log-error";
+                authStatus.innerText = "[!] Network error during transaction.";
             } else if (!committed || snapshot.val() === null) {
-                otpMsg.className = "message error";
-                otpMsg.innerText = "Invalid or already expired OTP.";
+                authStatus.className = "terminal-log log-error";
+                authStatus.innerText = "[!] ACCESS DENIED: Invalid or expired OTP.";
             } else {
-                otpMsg.className = "message success";
-                otpMsg.innerText = "OTP validated! Unlocking...";
-
-                sessionStorage.setItem("otp_session_valid", "true");
+                authStatus.className = "terminal-log log-success";
+                authStatus.innerText = "[+] ACCESS GRANTED. Disposing OTP token...";
 
                 setTimeout(() => {
-                    otpCard.style.display = "none";
-                    appCard.style.display = "flex";
-                }, 600);
+                    authBox.style.display = "none";
+                    mainToolBox.style.display = "flex";
+                }, 500);
             }
         });
     });
 
-    // Converter Logic
-    const convertBtn = document.getElementById("convertBtn");
-    const tgInput = document.getElementById("tgInput");
-    const appMsg = document.getElementById("appMessage");
-    const resultView = document.getElementById("resultView");
+    // Lookup handler
+    const queryBtn = document.getElementById("queryBtn");
+    const tgQuery = document.getElementById("tgQuery");
+    const toolStatus = document.getElementById("toolStatus");
+    const resultBlock = document.getElementById("resultBlock");
     const phoneOutput = document.getElementById("phoneOutput");
 
-    convertBtn.addEventListener("click", () => {
-        const username = tgInput.value.trim().replace("@", "");
+    queryBtn.addEventListener("click", () => {
+        const username = tgQuery.value.trim().replace("@", "");
 
         if (!username) {
-            appMsg.className = "message error";
-            appMsg.innerText = "Please provide a valid username.";
+            toolStatus.className = "terminal-log log-error";
+            toolStatus.innerText = "[!] Target username required.";
             return;
         }
 
-        appMsg.className = "message";
-        appMsg.innerText = "Querying internal registry...";
-        convertBtn.disabled = true;
+        toolStatus.className = "terminal-log";
+        toolStatus.innerText = "[*] Querying network index...";
+        queryBtn.disabled = true;
 
         setTimeout(() => {
-            convertBtn.disabled = false;
-            appMsg.className = "";
-            appMsg.innerText = "";
+            queryBtn.disabled = false;
+            toolStatus.className = "";
+            toolStatus.innerText = "";
 
-            // Simulated lookup resolution demo output
-            const simulatedPhone = "+91 9" + Math.floor(100000000 + Math.random() * 900000000);
-            phoneOutput.innerText = simulatedPhone;
-            resultView.style.display = "flex";
+            const generatedRecord = "+91 9" + Math.floor(100000000 + Math.random() * 900000000);
+            phoneOutput.innerText = generatedRecord;
+            resultBlock.style.display = "block";
 
-            // Push query log to Firebase
             db.ref("logs").push({
                 input: username,
-                result: simulatedPhone,
+                result: generatedRecord,
                 timestamp: Date.now()
             });
-        }, 800);
+        }, 700);
     });
 </script>
 
