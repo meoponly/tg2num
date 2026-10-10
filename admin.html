@@ -1,381 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deadpool Insider</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="favicon.png">
-  
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-  <style>
-    :root {
-      --bg: #05080d;
-      --card-bg: rgba(10, 16, 26, 0.9);
-      --border: #1e3a5f;
-      --accent: #00ff88;
-      --accent-glow: rgba(0, 255, 136, 0.25);
-      --cyan: #00f0ff;
-      --danger: #ff3366;
-      --text: #cbd5e1;
-      --dim: #64748b;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'JetBrains Mono', monospace; }
-
-    body {
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(ellipse at 50% 0%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 30px 30px, 30px 30px;
-      color: var(--text);
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    body::before {
-      content: " ";
-      position: fixed;
-      top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 4px;
-      z-index: 100;
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 900px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 10;
-    }
-
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 16px;
-    }
-
-    .header-title {
-      color: var(--cyan);
-      font-size: 1.2rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
-    }
-
-    .card-title {
-      font-size: 0.9rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .form-group { margin-bottom: 16px; }
-
-    label {
-      display: block;
-      color: var(--dim);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-
-    input[type="text"], input[type="email"], input[type="password"] {
-      width: 100%;
-      background: #040810;
-      border: 1px solid var(--border);
-      color: #fff;
-      font-size: 0.9rem;
-      padding: 10px 14px;
-      border-radius: 4px;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 10px var(--accent-glow);
-    }
-
-    button {
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 10px 20px;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      background: var(--accent);
-      color: #040810;
-      box-shadow: 0 0 15px var(--accent-glow);
-    }
-
-    .btn-secondary {
-      border-color: var(--dim);
-      color: var(--dim);
-    }
-
-    .btn-secondary:hover {
-      background: var(--dim);
-      color: #040810;
-      box-shadow: none;
-    }
-
-    .table-wrap { overflow-x: auto; margin-top: 10px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      border: 1px solid #1e293b;
-      padding: 12px;
-      text-align: left;
-    }
-
-    th {
-      background: #080f1a;
-      color: var(--cyan);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-size: 0.75rem;
-    }
-
-    tr:nth-child(even) { background: rgba(4, 8, 16, 0.4); }
-
-    .tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 3px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .tag-unlocked {
-      background: rgba(0, 255, 136, 0.15);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-    }
-
-    .tag-free {
-      background: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
-      border: 1px solid #f59e0b;
-    }
-
-    .status-alert { font-size: 0.8rem; margin-top: 10px; }
-    .status-alert.success { color: var(--accent); }
-    .status-alert.error { color: var(--danger); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - OTP Generator</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 420px;
+            width: 100%;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .active-otps {
+            margin-top: 25px;
+        }
+        .active-otps h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #94a3b8;
+        }
+        ul {
+            list-style: none;
+        }
+        li {
+            background-color: #334155;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+        .del-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-family: inherit;
+            letter-spacing: normal;
+            width: auto;
+        }
+        .del-btn:hover {
+            background-color: #dc2626;
+        }
+    </style>
+    <!-- Firebase App & Database SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header-bar">
-      <div class="header-title">// SYS_ADMIN // CORE CONTROL</div>
-      <a href="/" style="color: var(--cyan); text-decoration: none; font-size: 0.8rem;">[↗ RETURN TO SITE]</a>
+<div class="card">
+    <h2>OTP Management Console</h2>
+    <button id="generateBtn">Generate New 6-Digit OTP</button>
+
+    <div class="active-otps">
+        <h3>Active Unused OTPs</h3>
+        <ul id="otpList"></ul>
     </div>
+</div>
 
-    <!-- Login Box -->
-    <div class="card" id="loginCard">
-      <div class="card-title">AUTHENTICATION REQUIRED</div>
-      <div class="form-group">
-        <label>Admin Email</label>
-        <input type="email" id="adminEmail" placeholder="admin@domain.com" />
-      </div>
-      <div class="form-group">
-        <label>Admin Password</label>
-        <input type="password" id="adminPass" placeholder="••••••••" />
-      </div>
-      <button onclick="loginAdmin()">AUTHENTICATE</button>
-      <div id="loginMsg" class="status-alert error"></div>
-    </div>
-
-    <!-- Authenticated Admin Workspace -->
-    <div id="adminPanel" style="display: none;">
-      <!-- Config Settings -->
-      <div class="card">
-        <div class="card-title">⚙ RUNTIME CONFIGURATION</div>
-        <div class="form-group">
-          <label>Unlock Password (Required after 3 free searches)</label>
-          <input type="text" id="cfgPassword" placeholder="Enter VIP/Unlock password" />
-        </div>
-        <div class="form-group">
-          <label>API Key (Saved to Database)</label>
-          <input type="text" id="cfgApiKey" placeholder="API key (e.g. DEMOKE)" />
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <button onclick="saveConfig()">SAVE SETTINGS</button>
-          <span id="saveStatus" class="status-alert success"></span>
-        </div>
-      </div>
-
-      <!-- Visitor Audit Logs -->
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div class="card-title" style="margin-bottom: 0;">VISITOR TRACE AUDIT LOGS</div>
-          <button class="btn-secondary" onclick="logoutAdmin()">LOGOUT</button>
-        </div>
-        
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Target Username</th>
-                <th>Tier</th>
-                <th>Device Info</th>
-              </tr>
-            </thead>
-            <tbody id="logsTableBody">
-              <tr><td colspan="4" style="text-align: center; color: var(--dim);">Fetching records...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
+<script>
     const firebaseConfig = {
-      apiKey: "AIzaSyDvyIQNVjXPnVnYQWIcPrr5lrEAKbGr54k",
-      authDomain: "ewtube-b3413.firebaseapp.com",
-      databaseURL: "https://ewtube-b3413-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "ewtube-b3413",
-      storageBucket: "ewtube-b3413.firebasestorage.app",
-      messagingSenderId: "67454816410",
-      appId: "1:67454816410:web:27d326bf9668e5c64fcf23"
+        apiKey: "AIzaSyDvyIQNVjXPnVnYQWIcPrr5lrEAKbGr54k",
+        authDomain: "ewtube-b3413.firebaseapp.com",
+        databaseURL: "https://ewtube-b3413-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ewtube-b3413",
+        storageBucket: "ewtube-b3413.firebasestorage.app",
+        messagingSenderId: "67454816410",
+        appId: "1:67454816410:web:27d326bf9668e5c64fcf23"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
+    const otpsRef = db.ref("otps");
 
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById("loginCard").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-        loadAdminData();
-      } else {
-        document.getElementById("loginCard").style.display = "block";
-        document.getElementById("adminPanel").style.display = "none";
-      }
+    document.getElementById("generateBtn").addEventListener("click", () => {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otpsRef.child(otp).set({
+            createdAt: Date.now(),
+            used: false
+        });
     });
 
-    async function loginAdmin() {
-      const email = document.getElementById("adminEmail").value.trim();
-      const pass = document.getElementById("adminPass").value.trim();
-      const msg = document.getElementById("loginMsg");
-      msg.innerText = "";
+    otpsRef.on("value", (snapshot) => {
+        const list = document.getElementById("otpList");
+        list.innerHTML = "";
+        const data = snapshot.val();
 
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-      } catch (err) {
-        msg.innerText = `[ACCESS_DENIED] ${err.message}`;
-      }
-    }
-
-    function logoutAdmin() {
-      auth.signOut();
-    }
-
-    function loadAdminData() {
-      // Fetch stored config
-      db.ref("config").once("value", (snap) => {
-        const val = snap.val() || {};
-        document.getElementById("cfgPassword").value = val.access_password || "";
-        document.getElementById("cfgApiKey").value = val.api_key || "DEMOKE";
-      });
-
-      // Stream live visitor logs
-      db.ref("logs").limitToLast(60).on("value", (snap) => {
-        const logs = snap.val() || {};
-        const tbody = document.getElementById("logsTableBody");
-        tbody.innerHTML = "";
-
-        const list = Object.values(logs).reverse();
-        if (list.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: var(--dim);'>No traces logged yet.</td></tr>";
-          return;
+        if (!data) {
+            list.innerHTML = "<li style='color:#64748b; font-family:inherit; letter-spacing:0;'>No active OTPs</li>";
+            return;
         }
 
-        list.forEach((item) => {
-          const row = document.createElement("tr");
-          const date = item.timestamp ? new Date(item.timestamp).toLocaleString() : "Unknown";
-          const tag = item.is_unlocked 
-            ? '<span class="tag tag-unlocked">UNLOCKED</span>' 
-            : '<span class="tag tag-free">FREE</span>';
-          const ua = item.user_agent ? (item.user_agent.length > 35 ? item.user_agent.substring(0, 35) + "..." : item.user_agent) : "N/A";
-
-          row.innerHTML = `
-            <td>${date}</td>
-            <td style="color: var(--cyan); font-weight: 600;">@${item.target || "unknown"}</td>
-            <td>${tag}</td>
-            <td style="color: var(--dim); font-size: 0.75rem;" title="${item.user_agent || ''}">${ua}</td>
-          `;
-          tbody.appendChild(row);
+        Object.keys(data).forEach((otp) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <span>${otp}</span>
+                <button class="del-btn" onclick="deleteOtp('${otp}')">Revoke</button>
+            `;
+            list.appendChild(li);
         });
-      });
-    }
+    });
 
-    async function saveConfig() {
-      const password = document.getElementById("cfgPassword").value.trim();
-      const apiKey = document.getElementById("cfgApiKey").value.trim();
-      const status = document.getElementById("saveStatus");
+    window.deleteOtp = function(otp) {
+        otpsRef.child(otp).remove();
+    };
+</script>
 
-      try {
-        await db.ref("config").update({
-          access_password: password,
-          api_key: apiKey
-        });
-        status.innerText = "[✓] Configuration synchronized.";
-        setTimeout(() => { status.innerText = ""; }, 3000);
-      } catch (err) {
-        alert("Failed to save: " + err.message);
-      }
-    }
-  </script>
 </body>
 </html>
