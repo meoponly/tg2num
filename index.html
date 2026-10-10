@@ -1,330 +1,554 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TG_RESOLVER // TERMINAL</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <style>
-        :root {
-            --bg-color: #030804;
-            --term-panel: rgba(5, 18, 9, 0.9);
-            --term-border: #00ff66;
-            --term-border-dim: rgba(0, 255, 102, 0.3);
-            --term-green: #00ff66;
-            --term-dim: #00aa44;
-            --term-alert: #ff3344;
-            --font-mono: "Courier New", Courier, monospace;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deadpool Insider</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-mono);
-        }
+  <style>
+    :root {
+      --bg: #05080d;
+      --card-bg: rgba(10, 16, 26, 0.85);
+      --border: #1e293b;
+      --accent: #00ff88;
+      --accent-glow: rgba(0, 255, 136, 0.25);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.2);
+      --danger: #ff3366;
+      --warning: #f59e0b;
+      --text: #cbd5e1;
+      --dim: #64748b;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--term-green);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background-image: radial-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 0);
-            background-size: 24px 24px;
-            text-shadow: 0 0 4px rgba(0, 255, 102, 0.5);
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'JetBrains Mono', monospace; }
 
-        .terminal-container {
-            width: 100%;
-            max-width: 460px;
-        }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      position: relative;
+    }
 
-        .terminal-box {
-            background: var(--term-panel);
-            border: 1px solid var(--term-border);
-            border-radius: 4px;
-            box-shadow: 0 0 25px rgba(0, 255, 102, 0.18), inset 0 0 10px rgba(0, 255, 102, 0.05);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+    body::before {
+      content: " ";
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0.6;
+    }
 
-        .term-header {
-            background: #021206;
-            padding: 8px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--term-border-dim);
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-        }
+    .terminal-window {
+      background: var(--card-bg);
+      border: 1px solid #1e3a5f;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px var(--cyan-glow);
+      backdrop-filter: blur(12px);
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
 
-        .term-controls span {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        .ctrl-close { background: #ff4d4d; }
-        .ctrl-min { background: #ffbd2e; }
-        .ctrl-max { background: #27c93f; }
+    .window-header {
+      background: #080f1a;
+      border-bottom: 1px solid #1e3a5f;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .term-body {
-            padding: 26px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+    .window-dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
 
-        .ascii-title {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            color: var(--term-green);
-            margin-bottom: 8px;
-        }
+    .window-title {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
 
-        .prompt-line {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
+    .window-body { padding: 28px 24px; }
 
-        .input-term {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid var(--term-border-dim);
-            color: var(--term-green);
-            padding: 12px 14px;
-            font-size: 1.1rem;
-            outline: none;
-            text-align: center;
-            letter-spacing: 4px;
-        }
+    .command-prompt {
+      font-size: 0.85rem;
+      color: var(--dim);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
 
-        .input-term:focus {
-            border-color: var(--term-border);
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
-        }
+    .command-prompt span.accent { color: var(--accent); }
 
-        .btn-term {
-            background: transparent;
-            color: var(--term-green);
-            border: 1px solid var(--term-border);
-            padding: 12px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            letter-spacing: 2px;
-            text-align: center;
-            transition: all 0.2s;
-        }
+    .usage-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      color: var(--cyan);
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid #1e3a5f;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
 
-        .btn-term:hover {
-            background: var(--term-green);
-            color: #000;
-            box-shadow: 0 0 15px var(--term-green);
-        }
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      background: #040810;
+      border: 1px solid #1e3a5f;
+      border-radius: 6px;
+      padding: 6px 8px;
+      transition: all 0.2s ease;
+    }
 
-        .btn-term:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .search-bar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
 
-        .terminal-log {
-            font-size: 0.85rem;
-            min-height: 20px;
-        }
+    .prompt-prefix {
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      font-weight: 700;
+      user-select: none;
+    }
 
-        .log-error { color: var(--term-alert); }
-        .log-success { color: #22ff88; }
+    input[type="text"], input[type="password"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 8px;
+    }
 
-        .result-display {
-            display: none;
-            border: 1px dashed var(--term-border);
-            padding: 14px;
-            background: rgba(0, 255, 102, 0.05);
-            text-align: center;
-            margin-top: 10px;
-        }
+    input[type="text"]::placeholder { color: #334155; }
 
-        .result-text {
-            font-size: 1.3rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-    </style>
+    button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--accent);
+      color: #040810;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    button:disabled {
+      border-color: #334155;
+      color: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .results-area { margin-top: 24px; min-height: 120px; }
+
+    .status-box {
+      border-left: 2px solid var(--cyan);
+      padding-left: 12px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .status-box.warning { border-left-color: var(--warning); color: var(--warning); }
+    .status-box.error { border-left-color: var(--danger); color: var(--danger); }
+
+    .data-grid { display: grid; gap: 12px; }
+
+    .data-row {
+      background: rgba(4, 8, 16, 0.7);
+      border: 1px solid #1e293b;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .data-label {
+      color: var(--dim);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .data-value {
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .highlight-phone {
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .tg-action-wrap { margin-top: 16px; }
+
+    .tg-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      text-decoration: none;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 11px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    .tg-link-btn:hover {
+      background: var(--cyan);
+      color: #040810;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background: var(--accent);
+      vertical-align: middle;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .terminal-footer {
+      border-top: 1px solid #1e3a5f;
+      background: #080f1a;
+      padding: 12px 18px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .terminal-footer span {
+      color: var(--accent);
+      font-weight: 600;
+      text-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    /* Modal Gate after 3 free tries */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5, 8, 13, 0.94);
+      backdrop-filter: blur(5px);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      z-index: 50;
+      text-align: center;
+    }
+
+    .modal-card {
+      background: #0c1424;
+      border: 1px solid var(--danger);
+      box-shadow: 0 0 25px rgba(255, 51, 102, 0.25);
+      padding: 24px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 420px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="terminal-container">
-    <!-- View 1: One-Time Single-Use OTP Login -->
-    <div class="terminal-box" id="authBox">
-        <div class="term-header">
-            <div class="term-controls">
-                <span class="ctrl-close"></span>
-                <span class="ctrl-min"></span>
-                <span class="ctrl-max"></span>
-            </div>
-            <div>GATEWAY // ACCESS_GATE</div>
-            <div>[SECURE]</div>
-        </div>
-        <div class="term-body">
-            <div class="ascii-title">
-                [>] RESTRICTED ACCESS GATEWAY<br>
-                [>] ENTER 1-TIME SINGLE USE PASSCODE
-            </div>
-
-            <div class="prompt-line">
-                <span>OTP#</span>
-                <input type="text" id="otpInput" class="input-term" maxlength="6" placeholder="000000" autocomplete="off">
-            </div>
-
-            <button class="btn-term" id="verifyOtpBtn">> [EXECUTE_VERIFICATION] <</button>
-            <div class="terminal-log" id="authStatus"></div>
-        </div>
+  <div class="terminal-window">
+    <div class="window-header">
+      <div class="window-dots">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+      </div>
+      <div class="window-title">SYS_INTEL // V1.0</div>
     </div>
 
-    <!-- View 2: Converter Tool (Unlocks after OTP is consumed) -->
-    <div class="terminal-box" id="mainToolBox" style="display: none;">
-        <div class="term-header">
-            <div class="term-controls">
-                <span class="ctrl-close"></span>
-                <span class="ctrl-min"></span>
-                <span class="ctrl-max"></span>
-            </div>
-            <div>MODULE // TG2PHONE_RESOLVER</div>
-            <div>[UNLOCKED]</div>
-        </div>
-        <div class="term-body">
-            <div class="ascii-title">
-                [+] SESSION AUTHENTICATED (TOKEN CONSUMED)<br>
-                [+] READY FOR TG QUERY
-            </div>
+    <div class="window-body">
+      <div class="command-prompt">
+        <span class="accent">root@recon:~$</span> execute target_probe --protocol=tg<br>
+        Target status: Ready for query<span class="cursor"></span>
+      </div>
 
-            <div class="prompt-line">
-                <span>@</span>
-                <input type="text" id="tgQuery" class="input-term" style="text-align: left; letter-spacing: 1px;" placeholder="username" autocomplete="off">
-            </div>
+      <div class="usage-badge" id="usageBadge">FREE QUOTA: 3 / 3 REMAINING</div>
 
-            <button class="btn-term" id="queryBtn">> [QUERY_DATABASE] <</button>
-            <div class="terminal-log" id="toolStatus"></div>
+      <div class="search-bar">
+        <span class="prompt-prefix">></span>
+        <input type="text" id="usernameInput" placeholder="handle (e.g. durov)" autocomplete="off" spellcheck="false" />
+        <button id="searchBtn" onclick="queryTarget()">Trace</button>
+      </div>
 
-            <div class="result-display" id="resultBlock">
-                <div style="font-size: 0.75rem; color: var(--term-dim);">RESOLVED TELEPHONE:</div>
-                <div class="result-text" id="phoneOutput">+1 (555) 000-0000</div>
-            </div>
-        </div>
+      <div class="results-area" id="resultsBox">
+        <div class="status-box">Awaiting target input...</div>
+      </div>
     </div>
-</div>
 
-<script>
+    <!-- 3-Use Quota Modal -->
+    <div class="modal-overlay" id="authModal">
+      <div class="modal-card">
+        <div style="color: var(--danger); font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">[!] FREE QUOTA EXHAUSTED</div>
+        <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 16px; line-height: 1.4;">
+          You have reached your 3 free traces. Enter access key to unlock unlimited terminal traces.
+        </p>
+        <div class="search-bar" style="margin-bottom: 12px;">
+          <input type="password" id="authPassInput" placeholder="Enter password..." />
+        </div>
+        <button style="width: 100%; border-color: var(--cyan); color: var(--cyan);" onclick="verifyPassword()">UNLOCK SYSTEM</button>
+        <div id="modalError" style="color: var(--danger); font-size: 0.75rem; margin-top: 8px; display: none;"></div>
+      </div>
+    </div>
+
+    <div class="terminal-footer">
+      Developed by <span>meoponly</span>
+    </div>
+  </div>
+
+  <script>
     const firebaseConfig = {
-        apiKey: "AIzaSyDvyIQNVjXPnVnYQWIcPrr5lrEAKbGr54k",
-        authDomain: "ewtube-b3413.firebaseapp.com",
-        databaseURL: "https://ewtube-b3413-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "ewtube-b3413",
-        storageBucket: "ewtube-b3413.firebasestorage.app",
-        messagingSenderId: "67454816410",
-        appId: "1:67454816410:web:27d326bf9668e5c64fcf23"
+      apiKey: "AIzaSyDvyIQNVjXPnVnYQWIcPrr5lrEAKbGr54k",
+      authDomain: "ewtube-b3413.firebaseapp.com",
+      databaseURL: "https://ewtube-b3413-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ewtube-b3413",
+      storageBucket: "ewtube-b3413.firebasestorage.app",
+      messagingSenderId: "67454816410",
+      appId: "1:67454816410:web:27d326bf9668e5c64fcf23"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const otpInput = document.getElementById("otpInput");
-    const verifyOtpBtn = document.getElementById("verifyOtpBtn");
-    const authStatus = document.getElementById("authStatus");
-    const authBox = document.getElementById("authBox");
-    const mainToolBox = document.getElementById("mainToolBox");
+    let activeApiKey = "DEMOKE";
+    let requiredPassword = "";
+    const FREE_LIMIT = 3;
 
-    // Atomic OTP verification and consumption
-    verifyOtpBtn.addEventListener("click", () => {
-        const otp = otpInput.value.trim();
+    // Synchronize API key and access password live from Firebase
+    db.ref("config").on("value", (snapshot) => {
+      const conf = snapshot.val();
+      if (conf) {
+        if (conf.api_key) activeApiKey = conf.api_key;
+        if (conf.access_password) requiredPassword = conf.access_password;
+      }
+    });
 
-        if (!otp || otp.length < 6) {
-            authStatus.className = "terminal-log log-error";
-            authStatus.innerText = "[!] ERR: 6-digit OTP code required.";
-            return;
-        }
+    const IGNORED_KEYS = new Set([
+      "req_left", "req_total", "developer", "expiry", "msg", "cached", "status", "success"
+    ]);
 
-        verifyOtpBtn.disabled = true;
-        authStatus.className = "terminal-log";
-        authStatus.innerText = "[*] Verifying & consuming token...";
+    function getUsageCount() {
+      return parseInt(localStorage.getItem("recon_usage_count") || "0", 10);
+    }
 
-        const otpRef = db.ref("otps/" + otp);
+    function isUnlocked() {
+      return localStorage.getItem("recon_unlocked") === "true";
+    }
 
-        otpRef.transaction((data) => {
-            if (data === null) {
-                return; // Not found or already burned
-            }
-            return null; // Atomic deletion marks it burned immediately
-        }, (error, committed, snapshot) => {
-            verifyOtpBtn.disabled = false;
+    function updateBadge() {
+      const badge = document.getElementById("usageBadge");
+      if (isUnlocked()) {
+        badge.innerText = "ACCESS LEVEL: UNLIMITED (UNLOCKED)";
+        badge.style.color = "var(--accent)";
+      } else {
+        const left = Math.max(0, FREE_LIMIT - getUsageCount());
+        badge.innerText = `FREE QUOTA: ${left} / ${FREE_LIMIT} REMAINING`;
+      }
+    }
+    updateBadge();
 
-            if (error) {
-                authStatus.className = "terminal-log log-error";
-                authStatus.innerText = "[!] Network error during transaction.";
-            } else if (!committed || snapshot.val() === null) {
-                authStatus.className = "terminal-log log-error";
-                authStatus.innerText = "[!] ACCESS DENIED: Invalid or expired OTP.";
-            } else {
-                authStatus.className = "terminal-log log-success";
-                authStatus.innerText = "[+] ACCESS GRANTED. Disposing OTP token...";
+    function checkQuota() {
+      if (!isUnlocked() && getUsageCount() >= FREE_LIMIT) {
+        document.getElementById("authModal").style.display = "flex";
+        return false;
+      }
+      return true;
+    }
 
-                setTimeout(() => {
-                    authBox.style.display = "none";
-                    mainToolBox.style.display = "flex";
-                }, 500);
-            }
+    function verifyPassword() {
+      const pass = document.getElementById("authPassInput").value.trim();
+      const errBox = document.getElementById("modalError");
+
+      if (requiredPassword && pass === requiredPassword) {
+        localStorage.setItem("recon_unlocked", "true");
+        document.getElementById("authModal").style.display = "none";
+        updateBadge();
+      } else {
+        errBox.innerText = "[ERR] Invalid access key.";
+        errBox.style.display = "block";
+      }
+    }
+
+    function validateTelegramUsername(username) {
+      if (!username) return { valid: false, error: "Username cannot be empty." };
+      if (username.length < 5) return { valid: false, error: "Username too short (minimum 5 chars)." };
+      if (username.length > 32) return { valid: false, error: "Username too long (maximum 32 chars)." };
+      if (!/^[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(username)) {
+        return { valid: false, error: "Must start with a letter and contain only alphanumeric/underscores." };
+      }
+      return { valid: true };
+    }
+
+    async function logSearchQuery(username) {
+      try {
+        await db.ref("logs").push({
+          target: username,
+          timestamp: new Date().toISOString(),
+          is_unlocked: isUnlocked(),
+          user_agent: navigator.userAgent
         });
-    });
+      } catch (e) {
+        console.warn("Log write omitted:", e);
+      }
+    }
 
-    // Lookup handler
-    const queryBtn = document.getElementById("queryBtn");
-    const tgQuery = document.getElementById("tgQuery");
-    const toolStatus = document.getElementById("toolStatus");
-    const resultBlock = document.getElementById("resultBlock");
-    const phoneOutput = document.getElementById("phoneOutput");
+    async function queryTarget() {
+      if (!checkQuota()) return;
 
-    queryBtn.addEventListener("click", () => {
-        const username = tgQuery.value.trim().replace("@", "");
+      const input = document.getElementById("usernameInput");
+      const resultsBox = document.getElementById("resultsBox");
+      const searchBtn = document.getElementById("searchBtn");
 
-        if (!username) {
-            toolStatus.className = "terminal-log log-error";
-            toolStatus.innerText = "[!] Target username required.";
-            return;
+      let username = input.value.trim();
+      if (username.startsWith("@")) username = username.slice(1);
+
+      // Validate to avoid consuming API requests
+      const validation = validateTelegramUsername(username);
+      if (!validation.valid) {
+        resultsBox.innerHTML = `<div class="status-box warning">[VALIDATION_ERR] ${validation.error}</div>`;
+        return;
+      }
+
+      searchBtn.disabled = true;
+      searchBtn.innerText = "Scanning...";
+      resultsBox.innerHTML = `<div class="status-box">[SCAN] Querying nodes for @${username}...</div>`;
+
+      // Log action to Firebase
+      logSearchQuery(username);
+
+      const targetUrl = `https://owner-jii-apis.vercel.app/tgnum?num=${encodeURIComponent(username)}&api_key=${encodeURIComponent(activeApiKey)}`;
+
+      try {
+        const response = await fetch(targetUrl);
+        if (!response.ok) throw new Error(`HTTP_${response.status}`);
+
+        const data = await response.json();
+
+        // Increment count if not authenticated
+        if (!isUnlocked()) {
+          const current = getUsageCount() + 1;
+          localStorage.setItem("recon_usage_count", current);
+          updateBadge();
         }
 
-        toolStatus.className = "terminal-log";
-        toolStatus.innerText = "[*] Querying network index...";
-        queryBtn.disabled = true;
+        renderCleanResults(data, username);
+      } catch (err) {
+        resultsBox.innerHTML = `<div class="status-box error">[SYS_ERR] ${err.message}</div>`;
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.innerText = "Trace";
+        checkQuota();
+      }
+    }
 
-        setTimeout(() => {
-            queryBtn.disabled = false;
-            toolStatus.className = "";
-            toolStatus.innerText = "";
+    function renderCleanResults(data, username) {
+      const resultsBox = document.getElementById("resultsBox");
+      const tgButtonHtml = `
+        <div class="tg-action-wrap">
+          <a href="https://t.me/${encodeURIComponent(username)}" target="_blank" rel="noopener noreferrer" class="tg-link-btn">
+            ↗ Open in Telegram (@${username})
+          </a>
+        </div>
+      `;
 
-            const generatedRecord = "+91 9" + Math.floor(100000000 + Math.random() * 900000000);
-            phoneOutput.innerText = generatedRecord;
-            resultBlock.style.display = "block";
+      const rawString = JSON.stringify(data).toLowerCase();
+      if (rawString.includes("not found") || (data.msg && data.msg.toLowerCase().includes("not found"))) {
+        resultsBox.innerHTML = `<div class="status-box warning">[!] Phone number not found</div>${tgButtonHtml}`;
+        return;
+      }
 
-            db.ref("logs").push({
-                input: username,
-                result: generatedRecord,
-                timestamp: Date.now()
-            });
-        }, 700);
+      let payload = data.data || data.result || data;
+      const visibleEntries = Object.entries(payload).filter(([k]) => !IGNORED_KEYS.has(k.toLowerCase()));
+
+      if (visibleEntries.length === 0) {
+        resultsBox.innerHTML = `<div class="status-box warning">[!] Phone number not found</div>${tgButtonHtml}`;
+        return;
+      }
+
+      let html = `<div class="data-grid">`;
+      for (const [key, value] of visibleEntries) {
+        const formattedKey = key.replace(/_/g, " ");
+        const isPhone = key.toLowerCase().includes("num") || key.toLowerCase().includes("phone");
+        const displayVal = typeof value === "object" ? JSON.stringify(value) : value;
+
+        html += `
+          <div class="data-row">
+            <span class="data-label">${formattedKey}</span>
+            <span class="data-value ${isPhone ? 'highlight-phone' : ''}">${displayVal}</span>
+          </div>
+        `;
+      }
+      html += `</div>${tgButtonHtml}`;
+      resultsBox.innerHTML = html;
+    }
+
+    document.getElementById("usernameInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") queryTarget();
     });
-</script>
-
+  </script>
 </body>
 </html>
