@@ -3,354 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TG to Phone - Admin Panel</title>
+    <title>TERMINAL // ADMIN_CONSOLE</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root {
-            --bg-base: #030712;
-            --surface-primary: rgba(17, 24, 39, 0.7);
-            --surface-secondary: rgba(31, 41, 55, 0.6);
-            --border-primary: rgba(255, 255, 255, 0.08);
-            --border-glow: rgba(56, 189, 248, 0.3);
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            --accent-cyan: #38bdf8;
-            --accent-blue: #6366f1;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-color: #030804;
+            --term-panel: rgba(5, 18, 9, 0.85);
+            --term-border: #00ff66;
+            --term-border-dim: rgba(0, 255, 102, 0.25);
+            --term-green: #00ff66;
+            --term-dim: #00aa44;
+            --term-alert: #ff3344;
+            --font-mono: "Courier New", Courier, monospace;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: var(--font-family);
-            -webkit-tap-highlight-color: transparent;
+            font-family: var(--font-mono);
         }
 
         body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
+            background-color: var(--bg-color);
+            color: var(--term-green);
             min-height: 100vh;
+            padding: 25px 15px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 30px 15px;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Ambient Glow Backgrounds */
-        .ambient-glow {
-            position: fixed;
-            width: 450px;
-            height: 450px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            filter: blur(120px);
-            opacity: 0.15;
-            transition: all 1s ease;
-        }
-        .glow-1 {
-            top: -100px;
-            left: -100px;
-            background: radial-gradient(circle, var(--accent-cyan), transparent);
-        }
-        .glow-2 {
-            bottom: -100px;
-            right: -100px;
-            background: radial-gradient(circle, var(--accent-blue), transparent);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 900px;
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        /* Header / Brand */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            background: var(--surface-primary);
-            border: 1px solid var(--border-primary);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        .brand-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            color: var(--text-primary);
-        }
-
-        .brand-title i {
-            color: var(--accent-cyan);
-            font-size: 1.4rem;
-        }
-
-        .badge-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--accent-green);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .badge-status::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
-        }
-
-        /* Card Section */
-        .card {
-            background: var(--surface-primary);
-            border: 1px solid var(--border-primary);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-primary);
-            padding-bottom: 14px;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
-            gap: 8px;
+            background-image: radial-gradient(rgba(0, 255, 102, 0.08) 1px, transparent 0);
+            background-size: 24px 24px;
+            text-shadow: 0 0 4px rgba(0, 255, 102, 0.5);
+        }
+
+        .terminal-wrapper {
+            width: 100%;
+            max-width: 880px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .terminal-box {
+            background: var(--term-panel);
+            border: 1px solid var(--term-border);
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.15), inset 0 0 10px rgba(0, 255, 102, 0.05);
+            overflow: hidden;
+        }
+
+        .term-header {
+            background: #021206;
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--term-border-dim);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .term-controls span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .ctrl-close { background: #ff4d4d; }
+        .ctrl-min { background: #ffbd2e; }
+        .ctrl-max { background: #27c93f; }
+
+        .term-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn-terminal {
+            background: transparent;
+            color: var(--term-green);
+            border: 1px solid var(--term-border);
             padding: 10px 18px;
             font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
             cursor: pointer;
-            transition: all 0.2s ease;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            color: #030712;
-            font-weight: 700;
+        .btn-terminal:hover {
+            background: var(--term-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--term-green);
         }
 
-        .btn-primary:hover {
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--accent-red);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            padding: 6px 12px;
-            font-size: 0.8rem;
-        }
-
-        .btn-danger:hover {
-            background: var(--accent-red);
-            color: white;
-        }
-
-        /* OTP List styling */
         .otp-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 12px;
-            margin-top: 5px;
+            margin-top: 10px;
         }
 
-        .otp-pill {
-            background: var(--surface-secondary);
-            border: 1px solid var(--border-primary);
-            border-radius: 10px;
-            padding: 12px 14px;
+        .otp-item {
+            border: 1px dashed var(--term-border-dim);
+            padding: 10px 14px;
+            background: rgba(0, 255, 102, 0.03);
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            transition: all 0.2s ease;
+            align-items: center;
         }
 
-        .otp-pill:hover {
-            border-color: var(--border-glow);
-        }
-
-        .otp-code {
-            font-family: monospace;
-            font-size: 1.25rem;
+        .otp-value {
+            font-size: 1.2rem;
             letter-spacing: 2px;
-            color: var(--accent-cyan);
-            font-weight: 700;
+            font-weight: bold;
         }
 
-        .otp-meta {
+        .btn-revoke {
+            background: transparent;
+            color: var(--term-alert);
+            border: 1px solid var(--term-alert);
+            padding: 4px 8px;
+            cursor: pointer;
             font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 2px;
         }
 
-        .empty-placeholder {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 30px;
-            font-size: 0.9rem;
-        }
-
-        /* Table styling for records */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
+        .btn-revoke:hover {
+            background: var(--term-alert);
+            color: #000;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 8px 12px;
             text-align: left;
+            border-bottom: 1px solid var(--term-border-dim);
         }
 
         th {
-            background: var(--surface-secondary);
-            color: var(--text-secondary);
-            font-weight: 600;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-primary);
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-primary);
-            color: var(--text-primary);
-            white-space: nowrap;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent-cyan);
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: var(--term-dim);
         }
     </style>
 </head>
 <body>
 
-<div class="ambient-glow glow-1"></div>
-<div class="ambient-glow glow-2"></div>
-
-<div class="container">
-    <!-- Header -->
-    <div class="header">
-        <div class="brand-title">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>Admin Console</span>
+<div class="terminal-wrapper">
+    <div class="terminal-box">
+        <div class="term-header">
+            <div class="term-controls">
+                <span class="ctrl-close"></span>
+                <span class="ctrl-min"></span>
+                <span class="ctrl-max"></span>
+            </div>
+            <div>root@tg2num:~# admin_auth</div>
+            <div>[STATUS: ONLINE]</div>
         </div>
-        <div class="badge-status">
-            Connected to DB
+
+        <div class="term-body">
+            <div>[+] OTP GENERATION SUBSYSTEM</div>
+            <div>
+                <button class="btn-terminal" id="generateOtpBtn">
+                    <i class="fa-solid fa-terminal"></i> [GENERATE_SINGLE_USE_OTP]
+                </button>
+            </div>
+
+            <div style="margin-top: 15px; font-size: 0.85rem; color: var(--term-dim);">
+                >> ACTIVE UNEXPIRED ONE-TIME TOKENS:
+            </div>
+            <div id="otpContainer" class="otp-grid">
+                <div>Scanning database...</div>
+            </div>
         </div>
     </div>
 
-    <!-- OTP Control Section -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <i class="fa-solid fa-key" style="color: var(--accent-cyan);"></i>
-                <span>One-Time Password (OTP) Generation</span>
-            </div>
-            <button class="btn btn-primary" id="generateOtpBtn">
-                <i class="fa-solid fa-plus"></i>
-                Generate Single-Use OTP
-            </button>
+    <div class="terminal-box">
+        <div class="term-header">
+            <div>root@tg2num:~# lookup_audit_logs</div>
         </div>
-        <div id="otpContainer" class="otp-grid">
-            <div class="empty-placeholder">Loading active OTPs...</div>
-        </div>
-    </div>
-
-    <!-- Recent Lookups / Activity Logs -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <i class="fa-solid fa-list-check" style="color: var(--accent-blue);"></i>
-                <span>Recent System Lookups</span>
-            </div>
-        </div>
-        <div class="table-responsive">
+        <div class="term-body" style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Time</th>
-                        <th>Telegram Input</th>
-                        <th>Result Number</th>
-                        <th>Status</th>
+                        <th>TIMESTAMP</th>
+                        <th>TARGET_USER</th>
+                        <th>RESOLVED_NUMBER</th>
+                        <th>RESULT</th>
                     </tr>
                 </thead>
                 <tbody id="logsTableBody">
-                    <tr>
-                        <td colspan="4" class="empty-placeholder">No logs available</td>
-                    </tr>
+                    <tr><td colspan="4">No system logs available.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -373,7 +228,6 @@
     const otpsRef = db.ref("otps");
     const logsRef = db.ref("logs");
 
-    // Generate Single-Use OTP
     document.getElementById("generateOtpBtn").addEventListener("click", () => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         otpsRef.child(otp).set({
@@ -382,33 +236,30 @@
         });
     });
 
-    // Realtime Sync for OTPs
     otpsRef.on("value", (snapshot) => {
         const container = document.getElementById("otpContainer");
         container.innerHTML = "";
         const data = snapshot.val();
 
         if (!data || Object.keys(data).length === 0) {
-            container.innerHTML = "<div class='empty-placeholder' style='grid-column: 1/-1;'>No active OTPs. Click generate above.</div>";
+            container.innerHTML = "<div style='color: var(--term-dim);'>[!] No active OTPs stored.</div>";
             return;
         }
 
         Object.keys(data).forEach((otp) => {
             const item = data[otp];
-            const dateStr = item && item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : "Just now";
+            const timeStr = item && item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : "--";
 
-            const pill = document.createElement("div");
-            pill.className = "otp-pill";
-            pill.innerHTML = `
+            const div = document.createElement("div");
+            div.className = "otp-item";
+            div.innerHTML = `
                 <div>
-                    <div class="otp-code">${otp}</div>
-                    <div class="otp-meta">Generated: ${dateStr}</div>
+                    <div class="otp-value">${otp}</div>
+                    <div style="font-size: 0.7rem; color: var(--term-dim);">${timeStr}</div>
                 </div>
-                <button class="btn btn-danger" onclick="revokeOtp('${otp}')">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+                <button class="btn-revoke" onclick="revokeOtp('${otp}')">[DEL]</button>
             `;
-            container.appendChild(pill);
+            container.appendChild(div);
         });
     });
 
@@ -416,25 +267,23 @@
         otpsRef.child(otp).remove();
     };
 
-    // Realtime Sync for System Logs
     logsRef.limitToLast(10).on("value", (snapshot) => {
         const tbody = document.getElementById("logsTableBody");
         tbody.innerHTML = "";
         const data = snapshot.val();
 
         if (!data) {
-            tbody.innerHTML = "<tr><td colspan='4' class='empty-placeholder'>No lookup logs recorded yet</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='4'>[!] No activity logs found.</td></tr>";
             return;
         }
 
-        const entries = Object.values(data).reverse();
-        entries.forEach((log) => {
+        Object.values(data).reverse().forEach((log) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : "-"}</td>
-                <td><span class="tag">@${log.input || "-"}</span></td>
-                <td><code>${log.result || "-"}</code></td>
-                <td><span style="color: var(--accent-green);">Success</span></td>
+                <td>${log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : "--"}</td>
+                <td>@${log.input || "-"}</td>
+                <td>${log.result || "-"}</td>
+                <td>[SUCCESS]</td>
             `;
             tbody.appendChild(tr);
         });
