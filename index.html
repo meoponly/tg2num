@@ -43,6 +43,7 @@
       justify-content: center;
       align-items: center;
       padding: 24px;
+      padding-top: 130px; /* Space for Deadpool lounging on the top edge */
       position: relative;
     }
 
@@ -57,12 +58,31 @@
       opacity: 0.6;
     }
 
+    .terminal-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 580px;
+    }
+
+    .deadpool-resting {
+      position: absolute;
+      top: -110px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 500px;
+      height: auto;
+      pointer-events: none;
+      user-select: none;
+      z-index: 20;
+      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.85));
+    }
+
     .terminal-window {
       background: var(--card-bg);
       border: 1px solid #1e3a5f;
       border-radius: 10px;
       width: 100%;
-      max-width: 580px;
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px var(--cyan-glow);
       backdrop-filter: blur(12px);
       position: relative;
@@ -311,52 +331,57 @@
 </head>
 <body>
 
-  <div class="terminal-window">
-    <div class="window-header">
-      <div class="window-dots">
-        <div class="dot dot-red"></div>
-        <div class="dot dot-yellow"></div>
-        <div class="dot dot-green"></div>
-      </div>
-      <div class="window-title">SYS_INTEL // V1.0</div>
-    </div>
+  <div class="terminal-wrapper">
+    <!-- Sleeping / Lounging Deadpool on top of the card -->
+    <img src="deadpool.png" alt="Deadpool" class="deadpool-resting" />
 
-    <div class="window-body">
-      <div class="command-prompt">
-        <span class="accent">root@recon:~$</span> execute target_probe --protocol=tg<br>
-        Target status: Ready for query<span class="cursor"></span>
-      </div>
-
-      <div class="usage-badge" id="usageBadge">FREE QUOTA: 3 / 3 REMAINING</div>
-
-      <div class="search-bar">
-        <span class="prompt-prefix">></span>
-        <input type="text" id="usernameInput" placeholder="handle (e.g. durov)" autocomplete="off" spellcheck="false" />
-        <button id="searchBtn" onclick="queryTarget()">Trace</button>
-      </div>
-
-      <div class="results-area" id="resultsBox">
-        <div class="status-box">Awaiting target input...</div>
-      </div>
-    </div>
-
-    <!-- 3-Use Quota Modal -->
-    <div class="modal-overlay" id="authModal">
-      <div class="modal-card">
-        <div style="color: var(--danger); font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">[!] FREE QUOTA EXHAUSTED</div>
-        <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 16px; line-height: 1.4;">
-          You have reached your 3 free traces. Enter access key to unlock unlimited terminal traces.
-        </p>
-        <div class="search-bar" style="margin-bottom: 12px;">
-          <input type="password" id="authPassInput" placeholder="Enter password..." />
+    <div class="terminal-window">
+      <div class="window-header">
+        <div class="window-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
         </div>
-        <button style="width: 100%; border-color: var(--cyan); color: var(--cyan);" onclick="verifyPassword()">UNLOCK SYSTEM</button>
-        <div id="modalError" style="color: var(--danger); font-size: 0.75rem; margin-top: 8px; display: none;"></div>
+        <div class="window-title">SYS_INTEL // V1.0</div>
       </div>
-    </div>
 
-    <div class="terminal-footer">
-      Developed by <span>meoponly</span>
+      <div class="window-body">
+        <div class="command-prompt">
+          <span class="accent">root@recon:~$</span> execute target_probe --protocol=tg<br>
+          Target status: Ready for query<span class="cursor"></span>
+        </div>
+
+        <div class="usage-badge" id="usageBadge">FREE QUOTA: 3 / 3 REMAINING</div>
+
+        <div class="search-bar">
+          <span class="prompt-prefix">></span>
+          <input type="text" id="usernameInput" placeholder="handle (e.g. durov)" autocomplete="off" spellcheck="false" />
+          <button id="searchBtn" onclick="queryTarget()">Trace</button>
+        </div>
+
+        <div class="results-area" id="resultsBox">
+          <div class="status-box">Awaiting target input...</div>
+        </div>
+      </div>
+
+      <!-- 3-Use Quota Modal -->
+      <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+          <div style="color: var(--danger); font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">[!] FREE QUOTA EXHAUSTED</div>
+          <p style="color: var(--dim); font-size: 0.8rem; margin-bottom: 16px; line-height: 1.4;">
+            You have reached your 3 free traces. Enter access key to unlock unlimited terminal traces.
+          </p>
+          <div class="search-bar" style="margin-bottom: 12px;">
+            <input type="password" id="authPassInput" placeholder="Enter password..." />
+          </div>
+          <button style="width: 100%; border-color: var(--cyan); color: var(--cyan);" onclick="verifyPassword()">UNLOCK SYSTEM</button>
+          <div id="modalError" style="color: var(--danger); font-size: 0.75rem; margin-top: 8px; display: none;"></div>
+        </div>
+      </div>
+
+      <div class="terminal-footer">
+        Developed by <span>meoponly</span>
+      </div>
     </div>
   </div>
 
