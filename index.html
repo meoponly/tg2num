@@ -26,6 +26,13 @@
       --warning: #f59e0b;
       --text: #cbd5e1;
       --dim: #64748b;
+
+      /* Terminal width adjusts dynamically to screen size */
+      --terminal-w: clamp(320px, 94vw, 580px);
+      /* Deadpool's width scales smoothly with the terminal */
+      --dp-w: min(calc(var(--terminal-w) * 0.94), 520px);
+      /* Proportional height based on the image's aspect ratio (~1200x320 ≈ 0.27) */
+      --dp-h: calc(var(--dp-w) * 0.27);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'JetBrains Mono', monospace; }
@@ -39,11 +46,13 @@
       background-size: 100% 100%, 30px 30px, 30px 30px;
       color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 24px;
-      padding-top: 130px; /* Space for Deadpool lounging on the top edge */
+      padding: clamp(16px, 3vw, 24px);
+      /* Dynamically keeps room at top so Deadpool never gets clipped on any screen */
+      padding-top: calc(var(--dp-h) + clamp(20px, 4vh, 40px));
       position: relative;
     }
 
@@ -60,22 +69,25 @@
 
     .terminal-wrapper {
       position: relative;
-      width: 100%;
-      max-width: 580px;
+      width: var(--terminal-w);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
+    /* Sitting slightly sunk into the top border for realistic contact, scaled smoothly */
     .deadpool-resting {
       position: absolute;
-      top: -110px;
+      width: var(--dp-w);
+      /* Moves him lower into the box: offset directly linked to his rendered height */
+      top: calc(-1 * var(--dp-h) + clamp(12px, 2.5vw, 22px));
       left: 50%;
       transform: translateX(-50%);
-      width: 92%;
-      max-width: 500px;
       height: auto;
       pointer-events: none;
       user-select: none;
       z-index: 20;
-      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.85));
+      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 16px rgba(0, 240, 255, 0.15));
     }
 
     .terminal-window {
@@ -93,7 +105,7 @@
     .window-header {
       background: #080f1a;
       border-bottom: 1px solid #1e3a5f;
-      padding: 12px 18px;
+      padding: clamp(10px, 1.8vw, 14px) clamp(14px, 2.4vw, 18px);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -106,27 +118,30 @@
     .dot-green { background: #27c93f; }
 
     .window-title {
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.8vw, 0.75rem);
       letter-spacing: 2px;
       color: var(--cyan);
       text-transform: uppercase;
       font-weight: 600;
     }
 
-    .window-body { padding: 28px 24px; }
+    .window-body {
+      padding: clamp(20px, 4vw, 28px) clamp(16px, 3.5vw, 24px);
+    }
 
     .command-prompt {
-      font-size: 0.85rem;
+      font-size: clamp(0.76rem, 2vw, 0.85rem);
       color: var(--dim);
       margin-bottom: 14px;
       line-height: 1.5;
+      word-break: break-word;
     }
 
     .command-prompt span.accent { color: var(--accent); }
 
     .usage-badge {
       display: inline-block;
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.6vw, 0.75rem);
       color: var(--cyan);
       background: rgba(0, 240, 255, 0.08);
       border: 1px solid #1e3a5f;
@@ -154,7 +169,7 @@
       color: var(--accent);
       display: flex;
       align-items: center;
-      padding-left: 8px;
+      padding-left: 6px;
       font-weight: 700;
       user-select: none;
     }
@@ -165,8 +180,9 @@
       border: none;
       outline: none;
       color: #fff;
-      font-size: 0.95rem;
-      padding: 8px;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+      padding: 8px 4px;
+      min-width: 0;
     }
 
     input[type="text"]::placeholder { color: #334155; }
@@ -175,14 +191,15 @@
       background: transparent;
       border: 1px solid var(--accent);
       color: var(--accent);
-      padding: 8px 18px;
+      padding: 8px clamp(12px, 2.5vw, 18px);
       border-radius: 4px;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: clamp(0.75rem, 1.8vw, 0.85rem);
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 1px;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     button:hover {
@@ -205,14 +222,15 @@
       border-left: 2px solid var(--cyan);
       padding-left: 12px;
       color: var(--dim);
-      font-size: 0.85rem;
+      font-size: clamp(0.78rem, 2vw, 0.85rem);
       line-height: 1.4;
+      word-break: break-word;
     }
 
     .status-box.warning { border-left-color: var(--warning); color: var(--warning); }
     .status-box.error { border-left-color: var(--danger); color: var(--danger); }
 
-    .data-grid { display: grid; gap: 12px; }
+    .data-grid { display: grid; gap: 10px; }
 
     .data-row {
       background: rgba(4, 8, 16, 0.7);
@@ -223,18 +241,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
 
     .data-label {
       color: var(--dim);
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.6vw, 0.75rem);
       text-transform: uppercase;
       letter-spacing: 1px;
+      flex-shrink: 0;
     }
 
     .data-value {
       color: #fff;
-      font-size: 0.9rem;
+      font-size: clamp(0.8rem, 1.8vw, 0.9rem);
       font-weight: 600;
       word-break: break-all;
       text-align: right;
@@ -259,7 +279,7 @@
       color: var(--cyan);
       padding: 11px 16px;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: clamp(0.75rem, 1.8vw, 0.85rem);
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -291,7 +311,7 @@
       background: #080f1a;
       padding: 12px 18px;
       text-align: center;
-      font-size: 0.75rem;
+      font-size: clamp(0.68rem, 1.6vw, 0.75rem);
       color: var(--dim);
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -313,7 +333,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 24px;
+      padding: 20px;
       z-index: 50;
       text-align: center;
     }
@@ -322,7 +342,7 @@
       background: #0c1424;
       border: 1px solid var(--danger);
       box-shadow: 0 0 25px rgba(255, 51, 102, 0.25);
-      padding: 24px;
+      padding: 24px clamp(16px, 3vw, 24px);
       border-radius: 8px;
       width: 100%;
       max-width: 420px;
@@ -332,7 +352,7 @@
 <body>
 
   <div class="terminal-wrapper">
-    <!-- Sleeping / Lounging Deadpool on top of the card -->
+    <!-- Lounging Deadpool positioned naturally down against the top bezel -->
     <img src="deadpool.png" alt="Deadpool" class="deadpool-resting" />
 
     <div class="terminal-window">
@@ -491,7 +511,6 @@
       let username = input.value.trim();
       if (username.startsWith("@")) username = username.slice(1);
 
-      // Validate to avoid consuming API requests
       const validation = validateTelegramUsername(username);
       if (!validation.valid) {
         resultsBox.innerHTML = `<div class="status-box warning">[VALIDATION_ERR] ${validation.error}</div>`;
@@ -502,7 +521,6 @@
       searchBtn.innerText = "Scanning...";
       resultsBox.innerHTML = `<div class="status-box">[SCAN] Querying nodes for @${username}...</div>`;
 
-      // Log action to Firebase
       logSearchQuery(username);
 
       const targetUrl = `https://owner-jii-apis.vercel.app/tgnum?num=${encodeURIComponent(username)}&api_key=${encodeURIComponent(activeApiKey)}`;
@@ -513,7 +531,6 @@
 
         const data = await response.json();
 
-        // Increment count if not authenticated
         if (!isUnlocked()) {
           const current = getUsageCount() + 1;
           localStorage.setItem("recon_usage_count", current);
